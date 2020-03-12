@@ -122,13 +122,13 @@ bool start_thread(HANDLE& h_thread,const char* name_thread, int number,DWORD (*f
 	return true;
 }
 
-bool wait_thread(HANDLE& h_thread, const char* name)
+bool wait_thread(HANDLE& h_thread, const char* name_thread)
 {
 	WaitForSingleObject(h_thread, INFINITE);
 	DWORD exit_code;
 	GetExitCodeThread(h_thread, &exit_code);
 	if (exit_code == NULL) {
-		std::cerr << "error on thread " << name << "\n";
+		std::cerr << "error on thread " << name_thread << "\n";
 		CloseHandle(h_thread);
 		return false;
 	}
