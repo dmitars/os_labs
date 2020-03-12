@@ -1,5 +1,6 @@
 #include<iostream>
 #include<windows.h>
+
 int* mass;
 int min, max;
 double average;
@@ -8,10 +9,10 @@ CRITICAL_SECTION cs;
 
 void enter_mass(int);
 
-bool start_thread(HANDLE&,const char*, int*, DWORD(*f)(LPVOID));
+bool start_thread(HANDLE&,const char*, int, DWORD(*f)(LPVOID));
 bool wait_thread(HANDLE,const char*);
-void changeData(int);
-void printData(int);
+void change_data(int);
+void print_data(int);
 
 DWORD find_min_and_max(LPVOID);
 DWORD find_average(LPVOID);
@@ -26,11 +27,11 @@ int main() {
 	InitializeCriticalSection(&cs);
 	
 	HANDLE min_max;
-	if (!start_thread(min_max,"min_max", &number, find_min_and_max))
+	if (!start_thread(min_max,"min_max", number, find_min_and_max))
 		return -1;
 	
 	HANDLE average;
-	if (!start_thread(average,"average", &number, find_average))
+	if (!start_thread(average,"average", number, find_average))
 		return -2;
 
 	if (!wait_thread(min_max, "min_max"))
@@ -40,8 +41,8 @@ int main() {
 	
 	DeleteCriticalSection(&cs);
 	
-	changeData(number);
-	printData(number);
+	change_data(number);
+	print_data(number);
 	
 	return 0;
 }
@@ -55,7 +56,7 @@ void enter_mass(int number) {
 	}
 }
 
-void changeData(int number)
+void change_data(int number)
 {
 	for (int i = 0; i < number; i++)
 	{
@@ -66,7 +67,7 @@ void changeData(int number)
 	}
 }
 
-void printData(int number)
+void print_data(int number)
 {
 	std::cout << "result: ";
 	for (int i = 0; i < number; i++)
@@ -75,7 +76,7 @@ void printData(int number)
 
 DWORD find_min_and_max(LPVOID number_pointer)
 {
-	int number = *static_cast<int*>(number_pointer);
+	const int number = *static_cast<int*>(number_pointer);
 	min = mass[0];
 	max = mass[0];
 	for(int i = 1;i<number;i++)
@@ -97,7 +98,7 @@ DWORD find_min_and_max(LPVOID number_pointer)
 
 DWORD find_average(LPVOID number_pointer)
 {
-	int number = *static_cast<int*>(number_pointer);
+	const int number = *static_cast<int*>(number_pointer);
 	int sum = mass[0];
 	for(int i = 1;i<number;i++)
 	{
@@ -111,9 +112,9 @@ DWORD find_average(LPVOID number_pointer)
 	return true;
 }
 
-bool start_thread(HANDLE& h_thread,const char* name, int* number,DWORD (*function)(LPVOID))
+bool start_thread(HANDLE& h_thread,const char* name, int number,DWORD (*function)(LPVOID))
 {
-	 h_thread = CreateThread(nullptr, NULL,LPTHREAD_START_ROUTINE(function), number, NULL, nullptr);
+	 h_thread = CreateThread(nullptr, NULL,LPTHREAD_START_ROUTINE(function), &number, NULL, nullptr);
 	if (!h_thread) {
 		std::cerr << "cannot create thread " << name << "\n";
 		return false;
