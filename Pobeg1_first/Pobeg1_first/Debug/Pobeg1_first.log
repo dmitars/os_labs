@@ -1,0 +1,4 @@
+﻿  Main.cpp
+D:\ОС\Pobeg1_first\Pobeg1_first\Main.cpp(36,14): warning C4305: return: усечение из "int" в "bool"
+D:\ОС\Pobeg1_first\Pobeg1_first\Main.cpp(85,13): warning C4305: return: усечение из "int" в "bool"
+  Pobeg1_first.vcxproj -> D:\ОС\Pobeg1_first\Debug\Pobeg1_first.exe
