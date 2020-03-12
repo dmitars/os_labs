@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/dmitars/CLionProjects/firstRenamed/main.cpp
+iostream
+-
+unistd.h
+-
+fstream
+-
+string
+-
+cstring
+-
+sys/wait.h
+-
+iomanip
+-
+

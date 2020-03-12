@@ -1,0 +1,6 @@
+			 File report «report.txt»
+Employee's number     Employee's name        hours        payment
+
+                1               first            4             40
+                2              second            5             50
+                3               third           10            100
