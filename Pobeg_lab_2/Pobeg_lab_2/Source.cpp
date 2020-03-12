@@ -10,7 +10,7 @@ CRITICAL_SECTION cs;
 void enter_mass(int);
 
 bool start_thread(HANDLE&,const char*, int, DWORD(*f)(LPVOID));
-bool wait_thread(HANDLE,const char*);
+bool wait_thread(HANDLE&,const char*);
 void change_data(int);
 void print_data(int);
 
@@ -112,24 +112,24 @@ DWORD find_average(LPVOID number_pointer)
 	return true;
 }
 
-bool start_thread(HANDLE& h_thread,const char* name, int number,DWORD (*function)(LPVOID))
+bool start_thread(HANDLE& h_thread,const char* name_thread, int number,DWORD (*function)(LPVOID))
 {
 	 h_thread = CreateThread(nullptr, NULL,LPTHREAD_START_ROUTINE(function), &number, NULL, nullptr);
 	if (!h_thread) {
-		std::cerr << "cannot create thread " << name << "\n";
+		std::cerr << "cannot create thread " << name_thread << "\n";
 		return false;
 	}
 	return true;
 }
 
-bool wait_thread(HANDLE my_thread, const char* name)
+bool wait_thread(HANDLE& h_thread, const char* name)
 {
-	WaitForSingleObject(my_thread, INFINITE);
+	WaitForSingleObject(h_thread, INFINITE);
 	DWORD exit_code;
-	GetExitCodeThread(my_thread, &exit_code);
+	GetExitCodeThread(h_thread, &exit_code);
 	if (exit_code == NULL) {
 		std::cerr << "error on thread " << name << "\n";
-		CloseHandle(my_thread);
+		CloseHandle(h_thread);
 		return false;
 	}
 	return true;
