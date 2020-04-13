@@ -19,10 +19,11 @@ bool createThreads(std::vector<HANDLE>& threads, std::vector<parameter>& paramet
 bool work_with_threads(HANDLE* stop_events, HANDLE* break_events, std::vector<HANDLE>& threads_vector, int number_of_threads, int size);
 void init_mass(HANDLE* mass_events,const char* temp_name, int number_of_threads);
 bool set_event(HANDLE* h_event, const char* name);
-void print(std::vector<int>&, int);
+
+void print(std::vector<int>&);
 void change_number(int index, int value);
-bool free_resources(HANDLE* stop_events, HANDLE* break_events);
-int get_thread_index(int number_of_threads, bool* flags_of_broken_threads);
+void free_resources(HANDLE* stop_events, HANDLE* break_events);
+int get_thread_index(int number_of_threads, const bool* flags_of_broken_threads);
 
 const int MY_NUMBER = 11;
 std::vector<int> numbers;
@@ -30,7 +31,8 @@ std::vector<int> numbers;
 int main()
 {	
 	int size;
-	std::cout << "enter size of massive:\n";
+
+	std::cout << "enter size of array:\n";
 	std::cin >> size;
 	numbers.resize(size);
 	
@@ -40,8 +42,9 @@ int main()
 	
 	std::vector<HANDLE>threads_vector;
 	threads_vector.reserve(number_of_threads);
-	HANDLE* break_events = new HANDLE[number_of_threads];
-	HANDLE* stop_events = new HANDLE[number_of_threads];
+
+	const auto break_events = new HANDLE[number_of_threads];
+	const auto stop_events = new HANDLE[number_of_threads];
 
 	std::vector<parameter>parameters;
 	parameters.reserve(number_of_threads);
@@ -57,20 +60,20 @@ int main()
 	if (!createThreads(threads_vector, parameters, break_events, stop_events,size,  number_of_threads))
 	{
 		free_resources(stop_events, break_events);
-		return -1;
+		return 1;
 	}
 	
 	
 	if (!set_event(&start_event,"start_event"))
 	{
 		free_resources(stop_events, break_events);
-		return -1;
+		return 2;
 	}
 
 	if(!work_with_threads(stop_events,break_events,threads_vector,number_of_threads,size))
 	{
 		free_resources(stop_events,break_events);
-		return -1;
+		return 3;
 	}	
 	
 	free_resources(stop_events, break_events);
@@ -89,7 +92,7 @@ bool createThreads(std::vector<HANDLE>& threads,std::vector<parameter>&parameter
 		
 		threads.push_back(CreateThread(nullptr, NULL, LPTHREAD_START_ROUTINE(doMarkerWork), 
 			&parameters.at(i), NULL, nullptr));
-		if (!threads.at(i)) {
+		if (!threads[i]) {
 			EnterCriticalSection(&cs_console);
 			std::cerr << "cannot create thread " << i+1 << "\n";
 			LeaveCriticalSection(&cs_console);
@@ -105,16 +108,16 @@ bool work_with_threads(HANDLE* stop_events,HANDLE* break_events,std::vector<HAND
 	int count = 0;
 	while (count < number_of_threads) {
 		WaitForMultipleObjects(number_of_threads, stop_events, TRUE, INFINITE);
-		print(numbers, size);
+		print(numbers);
 
-		int thread_index = get_thread_index(number_of_threads, flags_of_broken_threads);
+		const int thread_index = get_thread_index(number_of_threads, flags_of_broken_threads);
 
 		flags_of_broken_threads[thread_index - 1] = true;
 		if (!set_event(&break_events[thread_index - 1], "break_event"))
 		{
 			free_resources(stop_events, break_events);
 			delete[]flags_of_broken_threads;
-			return -1;
+			return false;
 		}
 
 		WaitForSingleObject(threads_vector.at(thread_index - 1), INFINITE);
@@ -135,7 +138,7 @@ bool work_with_threads(HANDLE* stop_events,HANDLE* break_events,std::vector<HAND
 	return true;
 }
 
-int get_thread_index(int number_of_threads,bool* flags_of_broken_threads)
+int get_thread_index(int number_of_threads, const bool* flags_of_broken_threads)
 {
 	int thread_index;
 	bool incorrect = true;
@@ -153,18 +156,12 @@ int get_thread_index(int number_of_threads,bool* flags_of_broken_threads)
 	return thread_index;
 }
 
-bool free_resources(HANDLE* stop_events,HANDLE* break_events)
+void free_resources(HANDLE* stop_events,HANDLE* break_events)
 {
-	try {
-		delete[]stop_events;
-		delete[]break_events;
-		DeleteCriticalSection(&cs);
-		DeleteCriticalSection(&cs_console);
-	}catch(std::exception e){
-		printf(e.what());
-		return false;
-	}
-	return true;
+	delete[]stop_events;
+	delete[]break_events;
+	DeleteCriticalSection(&cs);
+	DeleteCriticalSection(&cs_console);
 }
 
 bool set_event(HANDLE* h_event,const char* name)
@@ -172,7 +169,8 @@ bool set_event(HANDLE* h_event,const char* name)
 	if (!SetEvent(*h_event))
 	{
 		EnterCriticalSection(&cs_console);
-		printf("SetEvent of %s failed (%d)\n",name, GetLastError());
+		printf("SetEvent of %s failed (%lu)\n",name, GetLastError());
+		LeaveCriticalSection(&cs_console);
 		return false;
 	}
 	return true;
@@ -188,8 +186,10 @@ void init_mass(HANDLE* mass_events,const char* temp_name,int number_of_threads)
 	}
 }
 
-void print(std::vector<int>& numbers, int size)
+
+void print(std::vector<int>& numbers)
 {
+	const int size = numbers.size();
 	EnterCriticalSection(&cs_console);
 	for (int i = 0; i < size; i++)
 		printf("\nindex %i: %i", i, numbers.at(i));
@@ -202,14 +202,14 @@ DWORD doMarkerWork(LPVOID pointer)
 	WaitForSingleObject(start_event, INFINITE);
 
 	srand(MY_NUMBER);
-	int index;
+
 	const auto parameters_pointer = static_cast<parameter*>(pointer);
 	const int size = parameters_pointer->number;
 	std::vector<int>indexes;
 
 	while(true)
 	{
-		index = rand() % size;
+		int index = rand() % size;
 		if(numbers.at(index) == 0)
 		{
 			Sleep(5);
@@ -227,7 +227,8 @@ DWORD doMarkerWork(LPVOID pointer)
 			
 			ResetEvent(start_event);
 			SetEvent(*(parameters_pointer->stop_event));
-			HANDLE* events = new HANDLE[2];
+
+			const auto events = new HANDLE[2];
 			events[0] = start_event;
 			events[1] = *(parameters_pointer->break_event);
 			const DWORD exit_code = WaitForMultipleObjects(2, events, FALSE, INFINITE);
