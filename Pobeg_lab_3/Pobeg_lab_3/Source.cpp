@@ -19,6 +19,7 @@ bool createThreads(std::vector<HANDLE>& threads, std::vector<parameter>& paramet
 bool work_with_threads(HANDLE* stop_events, HANDLE* break_events, std::vector<HANDLE>& threads_vector, int number_of_threads, int size);
 void init_mass(HANDLE* mass_events,const char* temp_name, int number_of_threads);
 bool set_event(HANDLE* h_event, const char* name);
+
 void print(std::vector<int>&);
 void change_number(int index, int value);
 void free_resources(HANDLE* stop_events, HANDLE* break_events);
@@ -30,6 +31,7 @@ std::vector<int> numbers;
 int main()
 {	
 	int size;
+
 	std::cout << "enter size of array:\n";
 	std::cin >> size;
 	numbers.resize(size);
@@ -40,6 +42,7 @@ int main()
 	
 	std::vector<HANDLE>threads_vector;
 	threads_vector.reserve(number_of_threads);
+
 	const auto break_events = new HANDLE[number_of_threads];
 	const auto stop_events = new HANDLE[number_of_threads];
 
@@ -155,10 +158,10 @@ int get_thread_index(int number_of_threads, const bool* flags_of_broken_threads)
 
 void free_resources(HANDLE* stop_events,HANDLE* break_events)
 {
-		delete[]stop_events;
-		delete[]break_events;
-		DeleteCriticalSection(&cs);
-		DeleteCriticalSection(&cs_console);
+	delete[]stop_events;
+	delete[]break_events;
+	DeleteCriticalSection(&cs);
+	DeleteCriticalSection(&cs_console);
 }
 
 bool set_event(HANDLE* h_event,const char* name)
@@ -183,6 +186,7 @@ void init_mass(HANDLE* mass_events,const char* temp_name,int number_of_threads)
 	}
 }
 
+
 void print(std::vector<int>& numbers)
 {
 	const int size = numbers.size();
@@ -198,6 +202,7 @@ DWORD doMarkerWork(LPVOID pointer)
 	WaitForSingleObject(start_event, INFINITE);
 
 	srand(MY_NUMBER);
+
 	const auto parameters_pointer = static_cast<parameter*>(pointer);
 	const int size = parameters_pointer->number;
 	std::vector<int>indexes;
@@ -222,6 +227,7 @@ DWORD doMarkerWork(LPVOID pointer)
 			
 			ResetEvent(start_event);
 			SetEvent(*(parameters_pointer->stop_event));
+
 			const auto events = new HANDLE[2];
 			events[0] = start_event;
 			events[1] = *(parameters_pointer->break_event);
