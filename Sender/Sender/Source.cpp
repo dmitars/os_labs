@@ -38,6 +38,9 @@ int main(char*argc, char**argv)
     }
 
     doWork(h_mutex, h_file);
+    CloseHandle(h_mutex);
+    CloseHandle(h_file);
+    return 0;
 }
 
 
@@ -62,8 +65,6 @@ void doWork(HANDLE h_mutex, HANDLE h_file)
         }
         else
         {
-            CloseHandle(h_mutex);
-            CloseHandle(h_file);
             return;
         }
     }

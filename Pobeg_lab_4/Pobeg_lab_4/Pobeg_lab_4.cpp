@@ -40,6 +40,8 @@ int main()
     {
         if (!start_process(events[i], file_name, i))
         {
+            for (int j = 0; j < i; j++)
+                CloseHandle(events[j]);
             delete[]events;
             CloseHandle(h_mutex);
             CloseHandle(h_file);
@@ -52,6 +54,8 @@ int main()
 
     CloseHandle(h_mutex);
     CloseHandle(h_file);
+    for (int i = 0; i < number_of_senders; i++)
+        CloseHandle(events[i]);
     delete[]events;
     return 0;
 }
